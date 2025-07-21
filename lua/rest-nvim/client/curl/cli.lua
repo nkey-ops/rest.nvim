@@ -201,6 +201,56 @@ function builder.extras(req)
     return args
 end
 
+---Apply "--basic" or "--digest" conversion when
+---Authorization header matches the pattern "^%s*(%w+)%s+(%w+)%s+(%w+)%s*$"
+---where the first capture is "basic" or "digest" ignoring the case
+---
+---if it's the pattern matches with "basic"
+--- the result is "-u username password"
+---
+---if it's the pattern matches with "digest"
+--- the result is "--digest -u username password"
+---
+---if the auth_value is nil, returns nil
+---if the auth_value doesn't match the pattern, returns nil
+---
+---See [JetBrains Authentication](https://www.jetbrains.com/help/idea/exploring-http-syntax.html#access-web-service-with-authentication)
+---@param auth_value string to match the pattern against
+---@return [string]|nil
+local convert_to_basic_or_digest_auth = function(auth_value)
+    if not auth_value then
+        return nil
+    end
+
+    local type, username, password
+
+    for value in auth_value:gmatch("%S+") do
+        if not type then
+            type = value
+        elseif not username then
+            username = value
+        elseif not password then
+            password = value
+        else
+            -- more than 3 values are present - skip
+            return nil
+        end
+    end
+
+    if (type and username and password) then
+        if type:lower() == "basic" then
+            return { "-u", username .. ":" .. password }
+        end
+
+        if type:lower() == "digest" then
+            return { "--digest", "-u", username .. ":" .. password }
+        end
+    end
+
+    return nil
+end
+
+
 ---@param method string
 ---@return string[] args
 function builder.method(method)
@@ -219,9 +269,20 @@ function builder.headers(header)
     local upper = function(str)
         return string.gsub(" " .. str, "%W%l", string.upper):sub(2)
     end
+
+
     for key, values in pairs(header) do
         for _, value in ipairs(values) do
-            vim.list_extend(args, { "-H", upper(key) .. ": " .. value })
+            if key:lower() == "authorization" and #values == 1 then
+                local converted_auth = convert_to_basic_or_digest_auth(value)
+                if converted_auth then
+                    vim.list_extend(args, converted_auth)
+                else
+                    vim.list_extend(args, { "-H", upper(key) .. ": " .. value })
+                end
+            else
+                vim.list_extend(args, { "-H", upper(key) .. ": " .. value })
+            end
         end
     end
     return args
