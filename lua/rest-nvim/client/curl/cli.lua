@@ -28,7 +28,7 @@ function curl.cli(args, on_exit, opts)
     opts.detach = false
     opts.text = true
     -- TODO(boltless): parse by chunk using `--trace-ascii %`
-    local curl_cmd = { "curl", "-sL", "-v" }
+    local curl_cmd = { "curl", "-s", "-v" }
     curl_cmd = vim.list_extend(curl_cmd, args)
     log.info(curl_cmd)
     opts.detach = false
