@@ -12,6 +12,7 @@ local parser = {}
 local Context = require("rest-nvim.context").Context
 local utils = require("rest-nvim.utils")
 local logger = require("rest-nvim.logger")
+local config = require("rest-nvim.config")
 local jar = require("rest-nvim.cookie_jar")
 local nio = require("nio")
 
@@ -552,7 +553,10 @@ function parser.parse(node, source, ctx)
         handlers = handlers,
     }
     ctx:clear_local()
-    jar.load_cookies(req)
+
+    if config.cookies.enable then
+        jar.load_cookies(req)
+    end
     return req
 end
 
