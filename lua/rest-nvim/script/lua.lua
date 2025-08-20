@@ -76,6 +76,21 @@ local function create_handler_env(ctx, res)
         ---@type rest.Response
         response = res,
     }
+
+
+    if vim.g.rest_nvim.custom_requests
+        and type(vim.g.rest_nvim.custom_requests) == 'function' then
+        -- and vim.g.rest_nvim.custom_requests.lua
+        -- and type(vim.g.rest_nvim.custom_requests.lua) == 'table' then
+
+        local custom_requests = vim.g.rest_nvim.custom_requests(ctx, res)
+
+        if custom_requests.lua and
+            type(custom_requests.lua) == 'table' then
+            env = vim.tbl_extend("force", env, custom_requests.lua)
+        end
+    end
+
     return env
 end
 
