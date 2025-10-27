@@ -33,6 +33,16 @@ local function create_prescript_env(ctx)
             },
         },
     }
+
+    if vim.g.rest_nvim.custom_pre_scripts
+        and type(vim.g.rest_nvim.custom_pre_scripts) == 'function' then
+        local custom_pre_scripts = vim.g.rest_nvim.custom_pre_scripts(ctx)
+
+        if custom_pre_scripts.lua and
+            type(custom_pre_scripts.lua) == 'table' then
+            env = vim.tbl_extend("force", env, custom_pre_scripts.lua)
+        end
+    end
     return env
 end
 
@@ -80,9 +90,6 @@ local function create_handler_env(ctx, res)
 
     if vim.g.rest_nvim.custom_requests
         and type(vim.g.rest_nvim.custom_requests) == 'function' then
-        -- and vim.g.rest_nvim.custom_requests.lua
-        -- and type(vim.g.rest_nvim.custom_requests.lua) == 'table' then
-
         local custom_requests = vim.g.rest_nvim.custom_requests(ctx, res)
 
         if custom_requests.lua and
