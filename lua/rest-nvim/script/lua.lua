@@ -34,13 +34,15 @@ local function create_prescript_env(ctx)
         },
     }
 
+    -- check for the presence of pre-script functions and
+    -- populate the 'env' with them, if any.
     if vim.g.rest_nvim.custom_pre_scripts
         and type(vim.g.rest_nvim.custom_pre_scripts) == 'function' then
-        local custom_pre_scripts = vim.g.rest_nvim.custom_pre_scripts(ctx)
+        local custom_pre_scripts = vim.g.rest_nvim.custom_pre_scripts
 
         if custom_pre_scripts.lua and
-            type(custom_pre_scripts.lua) == 'table' then
-            env = vim.tbl_extend("force", env, custom_pre_scripts.lua)
+            type(custom_pre_scripts.lua) == 'function' then
+            env = vim.tbl_extend("force", env, custom_pre_scripts.lua(ctx))
         end
     end
     return env
@@ -87,14 +89,15 @@ local function create_handler_env(ctx, res)
         response = res,
     }
 
+    -- check for the presence of post-script functions and
+    -- populate the 'env' with them, if any.
+    if vim.g.rest_nvim.custom_post_scripts
+        and type(vim.g.rest_nvim.custom_post_scripts) == 'table' then
+        local custom_post_scripts = vim.g.rest_nvim.custom_post_scripts
 
-    if vim.g.rest_nvim.custom_requests
-        and type(vim.g.rest_nvim.custom_requests) == 'function' then
-        local custom_requests = vim.g.rest_nvim.custom_requests(ctx, res)
-
-        if custom_requests.lua and
-            type(custom_requests.lua) == 'table' then
-            env = vim.tbl_extend("force", env, custom_requests.lua)
+        if custom_post_scripts.lua and
+            type(custom_post_scripts.lua) == 'function' then
+            env = vim.tbl_extend("force", env, custom_post_scripts.lua(ctx, res))
         end
     end
 

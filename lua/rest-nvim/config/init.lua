@@ -21,6 +21,22 @@ local config
 ---@class rest.Opts
 --- Table of custom dynamic variables
 ---@field custom_dynamic_variables? table<string, fun():string>
+---
+--- Table of custom scripts that are used in scripts before the request execution
+--- The table key is used to identify the language of the script.
+---
+--- Example: custom_pre_scripts.lua(ctx).bash64_encode(text)
+--- Calling custom_pre_scripts.lua(ctx) returns a table of pre-script functions
+--- For instance, bash64_encode(data) encodes data for inclusion in request objects.
+---@field custom_pre_scripts? table<string, fun(ctx: rest.Context):table<fun(...):any>>
+---
+--- Table of custom scripts that are executed after the request execution
+--- The table key is used to identify the language of the script
+---
+--- Example: custom_pre_scripts.lua(ctx, response).bash64_decode(text)
+--- Calling custom_pre_scripts.lua(ctx, response) returns a table of post-script functions
+--- For instance, bash64_decode(data) decodes retrieved data from the response.
+---@field custom_post_scripts? table<string, fun(ctx: rest.Context, response: rest.Response):table<fun(...):any>>
 ---@field request? rest.Opts.Request
 ---@field response? rest.Opts.Response
 ---@field clients? rest.Opts.Clients
