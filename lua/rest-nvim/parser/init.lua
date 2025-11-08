@@ -439,10 +439,10 @@ function parser.parse(node, source, ctx)
     end
     -- NOTE: url will be parsed after because in-place variables should be parsed first
     local url
-
     ---@type string|nil
     local name
     local handlers = {}
+    local custom_tags = { pre_scripts = {}, post_scripts = {} }
     for child, _ in node:iter_children() do
         local child_type = child:type()
         if child_type == "request" then
@@ -475,6 +475,31 @@ function parser.parse(node, source, ctx)
                 })
                 if input then
                     ctx:set_local(var_name, input)
+                end
+            elseif type(vim.g.rest_nvim.custom_tags) == "table" then
+                if type(vim.g.rest_nvim.custom_tags.lua) == "table" then
+                    local all_custom_tags = vim.g.rest_nvim.custom_tags.lua
+
+                    if type(all_custom_tags.pre_scripts) == "table" then
+                        for script_name, pre_script in pairs(all_custom_tags.pre_scripts) do
+                            if type(pre_script) == "function" then
+                                if comment_name == script_name then
+                                    table.insert(custom_tags.pre_scripts,
+                                        function(req) pre_script(req, ctx) end)
+                                end
+                            end
+                        end
+                    end
+                    if type(all_custom_tags.post_scripts) == "table" then
+                        for script_name, post_script in pairs(all_custom_tags.post_scripts) do
+                            if type(post_script) == "function" then
+                                if comment_name == script_name then
+                                    table.insert(custom_tags.post_scripts,
+                                        function(response, req) post_script(response, req, ctx) end)
+                                end
+                            end
+                        end
+                    end
                 end
             end
         elseif child_type == "variable_declaration" then
@@ -551,6 +576,7 @@ function parser.parse(node, source, ctx)
         cookies = {},
         body = body,
         handlers = handlers,
+        custom_tags = custom_tags
     }
     ctx:clear_local()
 

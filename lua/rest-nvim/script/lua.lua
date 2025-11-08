@@ -37,7 +37,7 @@ local function create_prescript_env(ctx)
     -- check for the presence of pre-script functions and
     -- populate the 'env' with them, if any.
     if vim.g.rest_nvim.custom_pre_scripts
-        and type(vim.g.rest_nvim.custom_pre_scripts) == 'function' then
+        and type(vim.g.rest_nvim.custom_pre_scripts) == 'table' then
         local custom_pre_scripts = vim.g.rest_nvim.custom_pre_scripts
 
         if custom_pre_scripts.lua and

@@ -58,6 +58,12 @@ local function run_request(req)
     })
     _G.rest_request = nil
 
+    if req.custom_tags and req.custom_tags.pre_scripts then
+        for _, pre_script in pairs(req.custom_tags.pre_scripts) do
+            pre_script(req)
+        end
+    end
+
     -- NOTE: wrap with schedule to do vim stuffs outside of lua callback loop (`on_exit`
     -- callback from `vim.system()` call)
     ui.update({ request = req })
@@ -69,6 +75,12 @@ local function run_request(req)
     end
     ---@cast res rest.Response
     logger.info("request success")
+
+    if req.custom_tags and req.custom_tags.post_scripts then
+        for _, post_script in pairs(req.custom_tags.post_scripts) do
+            post_script(res, req)
+        end
+    end
 
     -- run request handler scripts
     logger.debug(("run %d handers"):format(#req.handlers))
